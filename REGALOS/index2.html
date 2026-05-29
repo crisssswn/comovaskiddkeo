@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reproductor - Kidd Keo</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: linear-gradient(135deg, #4a5568, #1a202c, #111418);
+            color: white;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .player-container {
+            display: flex;
+            width: 90%;
+            max-width: 1200px;
+            height: 85vh;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+            padding: 40px;
+            box-sizing: border-box;
+        }
+
+        .left-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding-right: 40px;
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .album-cover {
+            width: 100%;
+            max-width: 350px;
+            aspect-ratio: 1 / 1;
+            background-image: url('imagen-2.jpeg');
+            background-size: cover;
+            background-position: center;
+            background-color: #000;
+            border-radius: 12px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+            margin-bottom: 30px;
+        }
+
+        .song-info {
+            width: 100%;
+            max-width: 350px;
+            text-align: left;
+        }
+
+        .song-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin: 0 0 5px 0;
+        }
+
+        .song-artist {
+            font-size: 16px;
+            color: rgba(255, 255, 255, 0.6);
+            margin: 0 0 20px 0;
+        }
+
+        .progress-container {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            margin-bottom: 20px;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .progress-bar {
+            flex: 1;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.2);
+            margin: 0 10px;
+            border-radius: 3px;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .progress-fill {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 0%; 
+            background: white;
+            border-radius: 3px;
+            transition: width 0.1s linear;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            color: white;
+            font-size: 20px;
+            width: 100%;
+        }
+
+        .controls span {
+            cursor: pointer;
+            opacity: 0.8;
+            user-select: none;
+            transition: 0.2s;
+        }
+        
+        .controls span:hover {
+            opacity: 1;
+            transform: scale(1.1);
+        }
+
+        .play-btn {
+            font-size: 32px;
+        }
+
+        .speed-selector {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 5px 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .speed-selector option {
+            background: #1a202c;
+            color: white;
+        }
+
+        .right-panel {
+            flex: 1.5;
+            padding-left: 60px;
+            overflow-y: auto;
+            scrollbar-width: none; 
+            -ms-overflow-style: none;
+            scroll-behavior: smooth;
+            padding-top: 30vh;
+            padding-bottom: 30vh;
+        }
+        
+        .right-panel::-webkit-scrollbar {
+            display: none;
+        }
+
+        .lyric-line {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 40px;
+            line-height: 1.4;
+            color: rgba(255, 255, 255, 1);
+            opacity: 0.08; 
+            filter: blur(3px); 
+            transition: all 0.5s ease;
+            cursor: pointer;
+        }
+
+        .lyric-line.active {
+            opacity: 1; 
+            filter: blur(0px);
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+            transform: scale(1.02);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Asegúrate de que el nombre del archivo coincida exactamente con el de tu computadora -->
+    <audio id="audio-player" src="como-vas.mp3"></audio>
+
+    <div class="player-container">
+        
+        <div class="left-panel">
+            <div class="album-cover"></div>
+            <div class="song-info">
+                <h2 class="song-title">¿Como Vas?</h2>
+                <p class="song-artist">Kidd Keo</p>
+            </div>
+            
+            <div class="progress-container">
+                <span id="current-time">0:00</span>
+                <div class="progress-bar" id="progress-bar">
+                    <div class="progress-fill" id="progress-fill"></div>
+                </div>
+                <span id="duration-time">0:00</span>
+            </div>
+
+            <div class="controls">
+                <span>🔉</span>
+                <span id="prev-btn" title="Retroceder 10s">⏮</span>
+                <span class="play-btn" id="play-btn">▶</span>
+                <span id="next-btn" title="Adelantar 10s">⏭</span>
+                
+                <select id="speed-control" class="speed-selector" title="Velocidad de reproducción">
+                    <option value="0.5">0.5x</option>
+                    <option value="0.75">0.75x</option>
+                    <option value="1" selected>1.0x</option>
+                    <option value="1.25">1.25x</option>
+                    <option value="1.5">1.5x</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="right-panel" id="lyrics-container">
+            <div class="lyric-line" data-time="0">•••</div>
+            
+            <div class="lyric-line" data-time="12">
+                Dime, baby, ¿cómo andas?, dime, ¿cómo vas?<br>
+                Por acá ha pasa'o de todo, pero en verdad, todo igual
+            </div>
+            <div class="lyric-line" data-time="18">
+                Un saludo pa' tu amiga, un beso de mi mamá<br>
+                Dice: "¿Qué fue de tu rosa?, que una espina está clava'"
+            </div>
+            
+            <div class="lyric-line" data-time="25">
+                Bueno, baby, yo te cuento las vuelta' de por aquí (Ah, ¡Wuh!)<br>
+                Y dime qué tal andas, quiero saber de Madrid (Ah, ah)
+            </div>
+            <div class="lyric-line" data-time="31">
+                Si es verdad que estoy en fama, hit those pockets full of green (Yah)<br>
+                Me falta estar en casa con tu culo de cojín (Yo', yo')
+            </div>
+            <div class="lyric-line" data-time="38">
+                Me compré un Rolex con diamantes, pa'l día 'e San Valentín (No, no)<br>
+                Me llenaban más las ganas en verdad de estar allí (Look, look)
+            </div>
+            <div class="lyric-line" data-time="44">
+                Dime que sigues pensando, que no te ha' olvida'o de mí (No, no)<br>
+                Que va' a seguir cantando nuestros viajes a París (Skrrt, skrrt)
+            </div>
+
+            <div class="lyric-line" data-time="52">
+                Dime, baby, ¿cómo andas?, dime, ¿cómo vas?<br>
+                Te veo dentro de na', te vo' a poner en tu lugar (Nada; ajá)
+            </div>
+            <div class="lyric-line" data-time="59">
+                Te vo' a sacar de fiesta, te vo' a lleva' a pasear (Ajá)<br>
+                Senta'o en la terraza y viéndote verme fumar (Keo)
+            </div>
+
+            <div class="lyric-line" data-time="65">
+                Dime, baby, ¿cómo andas?, dime, ¿cómo vas? (¿Cómo va'?)<br>
+                Por aquí ha pasa'o de todo, pero en verdad, todo igual
+            </div>
+            <div class="lyric-line" data-time="72">
+                Un saludo pa' tu amiga, un beso de mi mamá (Ah)<br>
+                Dice: "¿Qué fue de tu rosa?, que una espina está clava' (Sich)
+            </div>
+
+            <div class="lyric-line" data-time="79">
+                Sin mí no puede' dormir (No), tú no puedes venir (No)<br>
+                Y me tengo que ir (Oh), yo te quiero hasta morir (No)
+            </div>
+            <div class="lyric-line" data-time="85">
+                Dime, ¿qué le vo' a decir? (¿Qué?), ¿cómo le voy a pedir? (Yo')<br>
+                Que ella esté sola por casa, mientras yo estoy por ahí (No, no)
+            </div>
+            <div class="lyric-line" data-time="92">
+                Ando posteando en otro barrio, contando 100 (Prr)<br>
+                Su familia le pregunta, ¿estamos bien? (Ah-ah)
+            </div>
+            <div class="lyric-line" data-time="99">
+                Habla con universitarios en la parada del tren (No)<br>
+                Y yo en el telediario dando más problemas que ayer (Sorry)
+            </div>
+
+            <div class="lyric-line" data-time="104">
+                En un punto de cocaína, mando medicina (Ey, ey, ey)<br>
+                Este está en la cima, no hay quién me deprima (Ey, ey)
+            </div>
+            <div class="lyric-line" data-time="111">
+                Pero yo me imagino, y por más money que tenga arriba<br>
+                Pienso que estás lejos y se me viene to' encima (Oh)
+            </div>
+
+            <div class="lyric-line" data-time="118">
+                Dime baby, ¿cómo andas?, dime, ¿cómo vas? (Yah, yah, yah)<br>
+                Por aquí ha pasa'o de todo, pero en verdad, todo igual (Ey, ey, ey)
+            </div>
+            <div class="lyric-line" data-time="125">
+                Un saludo pa' tu amiga y un beso de mi mamá (Muá)<br>
+                Dice: "¿Qué fue de tu rosa?, que una espina está clava' (Ey, ey, no-no-no)
+            </div>
+            <div class="lyric-line" data-time="135">
+                'Tá clava' ('Tá clava'; mm-mm)<br>
+                'Tá clava' ('Tá clava'; mm-mm)<br>
+                Keo
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const audio = document.getElementById('audio-player');
+        const playBtn = document.getElementById('play-btn');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const speedControl = document.getElementById('speed-control');
+        const progressBar = document.getElementById('progress-bar');
+        const progressFill = document.getElementById('progress-fill');
+        const currentTimeEl = document.getElementById('current-time');
+        const durationTimeEl = document.getElementById('duration-time');
+        const lyrics = document.querySelectorAll('.lyric-line');
+
+        speedControl.addEventListener('change', (e) => {
+            audio.playbackRate = parseFloat(e.target.value);
+        });
+
+        playBtn.addEventListener('click', () => {
+            if (audio.paused) {
+                audio.play();
+                playBtn.textContent = '⏸';
+            } else {
+                audio.pause();
+                playBtn.textContent = '▶';
+            }
+        });
+
+        function formatTime(seconds) {
+            if (isNaN(seconds)) return "0:00";
+            const min = Math.floor(seconds / 60);
+            const sec = Math.floor(seconds % 60);
+            return `${min}:${sec < 10 ? '0' : ''}${sec}`;
+        }
+
+        audio.addEventListener('loadedmetadata', () => {
+            durationTimeEl.textContent = formatTime(audio.duration);
+        });
+
+        audio.addEventListener('timeupdate', () => {
+            const currentTime = audio.currentTime;
+            
+            currentTimeEl.textContent = formatTime(currentTime);
+            if (audio.duration) {
+                const progressPercent = (currentTime / audio.duration) * 100;
+                progressFill.style.width = `${progressPercent}%`;
+            }
+
+            let activeLyric = null;
+            
+            lyrics.forEach((lyric, index) => {
+                const time = parseFloat(lyric.getAttribute('data-time'));
+                const nextLyric = lyrics[index + 1];
+                const nextTime = nextLyric ? parseFloat(nextLyric.getAttribute('data-time')) : audio.duration;
+
+                if (currentTime >= time && currentTime < nextTime) {
+                    activeLyric = lyric;
+                }
+            });
+
+            if (activeLyric && !activeLyric.classList.contains('active')) {
+                lyrics.forEach(l => l.classList.remove('active'));
+                activeLyric.classList.add('active');
+                activeLyric.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        });
+
+        progressBar.addEventListener('click', (e) => {
+            const clickX = e.offsetX;
+            const width = progressBar.clientWidth;
+            const clickRatio = clickX / width;
+            audio.currentTime = clickRatio * audio.duration;
+        });
+
+        prevBtn.addEventListener('click', () => {
+            audio.currentTime = Math.max(0, audio.currentTime - 10);
+        });
+
+        nextBtn.addEventListener('click', () => {
+            audio.currentTime = Math.min(audio.duration, audio.currentTime + 10);
+        });
+
+        audio.addEventListener('ended', () => {
+            playBtn.textContent = '▶';
+            progressFill.style.width = '0%';
+            currentTimeEl.textContent = '0:00';
+            lyrics.forEach(l => l.classList.remove('active'));
+            lyrics[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+        });
+
+        lyrics.forEach(lyric => {
+            lyric.addEventListener('click', () => {
+                const time = parseFloat(lyric.getAttribute('data-time'));
+                audio.currentTime = time;
+                if(audio.paused){
+                    audio.play();
+                    playBtn.textContent = '⏸';
+                }
+            });
+        });
+    </script>
+</body>
+</html>
